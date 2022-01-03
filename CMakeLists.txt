@@ -38,6 +38,13 @@ set_target_properties(
     CXX_EXTENSIONS ON
 )
 
+set_target_properties(
+    TEST PROPERTIES
+    CXX_STANDARD 17
+    CXX_STANDARD_REQUIRED ON
+    CXX_EXTENSIONS ON
+)
+
 # compiler flags
 IF (CMAKE_BUILD_TYPE MATCHES Debug)
     add_compile_options(TEST PUBLIC -Wall -g)
