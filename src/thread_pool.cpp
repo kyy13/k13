@@ -23,7 +23,7 @@ namespace k13
         // Throw exceptions if caught on worker thread
         if (status == thread_task_error)
         {
-            throw m_sync->exception;
+            std::rethrow_exception(m_sync->exception);
         }
     }
 
@@ -45,7 +45,7 @@ namespace k13
         if (status == thread_task_error)
         {
             status = thread_task_none;
-            throw m_sync->exception;
+            std::rethrow_exception(m_sync->exception);
         }
 
         return status != thread_task_progress;

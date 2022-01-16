@@ -65,7 +65,7 @@ namespace k13
             thread_task_status status;
             std::condition_variable cv;
             std::mutex mtx;
-            std::exception exception;
+            std::exception_ptr exception;
         };
 
         std::shared_ptr<impl_task_sync> m_sync;
@@ -126,9 +126,9 @@ namespace k13
                     {
                         func();
                     }
-                    catch(const std::exception& e)
+                    catch(...)
                     {
-                        sync->exception = e;
+                        sync->exception = std::current_exception();
                     }
 
                     // Tell main thread that the task has been processed

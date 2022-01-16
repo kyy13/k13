@@ -289,15 +289,15 @@ namespace k13
         // Pushes an array of n elements to the end of the data
         void push_back(const T* o, size_t n)
         {
-            size_t targetCap = m_size + n;
+            size_t targetSize = m_size + n;
 
             // vector is full
-            if (targetCap > m_capacity)
+            if (targetSize > m_capacity)
             {
                 // 1.5x capacity
                 size_t newCap = m_capacity;
 
-                while (newCap < targetCap)
+                while (newCap < targetSize)
                 {
                     newCap = (newCap < 4u)
                         ? (newCap + 1u)
@@ -308,6 +308,7 @@ namespace k13
             }
 
             memcpy(&m_data[m_size], o, n * sizeof(T));
+            m_size = targetSize;
         }
 
         // Pops an element from the end of the data
