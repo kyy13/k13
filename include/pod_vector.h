@@ -48,19 +48,7 @@ namespace k13
             if (size > 0u)
             {
                 m_data = new T[size];
-
-                if constexpr (sizeof(T) == 1u)
-                {
-                    memset(m_data, *reinterpret_cast<uint8_t*>(&value), size);
-                }
-                else
-                {
-                    T* end = m_data + size;
-                    for (T* ptr = m_data; ptr != end; ++ptr)
-                    {
-                        *ptr = value;
-                    }
-                }
+                impl_fill(value);
             }
         }
 
@@ -165,28 +153,55 @@ namespace k13
         {
             if (n > m_capacity)
             {
-                T* data = new T[n];
-                if (m_size > 0)
-                {
-                    memcpy(data, m_data, m_size * sizeof(T));
-                    delete[] m_data;
-                }
-                m_data = data;
-                m_capacity = n;
+                impl_set_capacity(n);
             }
         }
 
         // Resizes the vector to n elements without initializing them
         void resize(size_t n)
         {
-            reserve(n);
+            size_t r = m_capacity;
+
+            if (n > r)
+            {
+                while (r < n)
+                {
+                    r = (r < 4)
+                        ? (r + 1)
+                        : (r + (r >> 1u));
+                }
+
+                impl_set_capacity(r);
+            }
+
             m_size = n;
+        }
+
+        void resize(size_t n, T x)
+        {
+            size_t temp = m_size;
+
+            resize(n);
+
+            if (n > temp)
+            {
+                impl_fill(temp, n - temp, x);
+            }
         }
 
         // Sets size to 0
         void clear()
         {
             m_size = 0;
+        }
+
+        // Shrink capacity to fit size
+        void shrink_to_fit()
+        {
+            if (m_capacity != m_size)
+            {
+                impl_set_capacity(m_size);
+            }
         }
 
         // Returns true if the vector is empty (size = 0)
@@ -277,7 +292,7 @@ namespace k13
             if (m_size == m_capacity)
             {
                 // 1.5x capacity
-                reserve((m_capacity < 4u)
+                impl_set_capacity((m_capacity < 4u)
                     ? (m_capacity + 1u)
                     : (m_capacity + (m_capacity >> 1u)));
             }
@@ -304,7 +319,7 @@ namespace k13
                         : (newCap + (newCap >> 1u));
                 }
 
-                reserve(newCap);
+                impl_set_capacity(newCap);
             }
 
             memcpy(&m_data[m_size], o, n * sizeof(T));
@@ -350,6 +365,54 @@ namespace k13
         T* m_data;
         size_t m_size;
         size_t m_capacity;
+
+        void impl_set_capacity(size_t n)
+        {
+            assert(n >= m_size);
+            T* data = new T[n];
+            if (m_size > 0)
+            {
+                memcpy(data, m_data, m_size * sizeof(T));
+                delete[] m_data;
+            }
+            m_data = data;
+            m_capacity = n;
+        }
+
+        void impl_fill(T x)
+        {
+            if constexpr (sizeof(T) == 1u)
+            {
+                memset(m_data, *reinterpret_cast<int*>(&x), m_size);
+            }
+            else
+            {
+                T* end = m_data + m_size;
+                for (T* ptr = m_data; ptr != end; ++ptr)
+                {
+                    *ptr = x;
+                }
+            }
+        }
+
+        void impl_fill(size_t i, size_t n, T x)
+        {
+            assert(i + n <= m_size);
+
+            if constexpr (sizeof(T) == 1u)
+            {
+                memset(&m_data[i], *reinterpret_cast<int*>(&x), n);
+            }
+            else
+            {
+                T* ptr = m_data + i;
+                T* end = ptr + n;
+                for (; ptr != end; ++ptr)
+                {
+                    *ptr = x;
+                }
+            }
+        }
     };
 }
 

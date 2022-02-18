@@ -1,4 +1,10 @@
+# k13
+# Kyle J Burgess
+
+cmake_minimum_required(VERSION 3.7)
 project(k13)
+
+option(BUILD_TESTS "build tests?" ON)
 
 # library
 add_library(
@@ -7,20 +13,9 @@ add_library(
     src/thread_pool.cpp
 )
 
-# test exe
-add_executable(
-    TEST
-    src/main.cpp
-)
-
 # includes
 target_include_directories(
     ${PROJECT_NAME} PUBLIC
-    include
-)
-
-target_include_directories(
-    TEST PUBLIC
     include
 )
 
@@ -38,33 +33,7 @@ set_target_properties(
     CXX_EXTENSIONS ON
 )
 
-set_target_properties(
-    TEST PROPERTIES
-    CXX_STANDARD 17
-    CXX_STANDARD_REQUIRED ON
-    CXX_EXTENSIONS ON
-)
-
-# compiler flags
-IF (CMAKE_BUILD_TYPE MATCHES Debug)
-    add_compile_options(TEST PUBLIC -Wall -g)
-ELSE()
-    add_compile_options(TEST PUBLIC -O3)
+IF(BUILD_TESTS)
+    enable_testing()
+    add_subdirectory(tests)
 ENDIF()
-
-#linker flags
-
-set(
-    CMAKE_CXX_STANDARD_LIBRARIES
-    "-static-libgcc -static-libstdc++ ${CMAKE_CXX_STANDARD_LIBRARIES}"
-)
-
-set(
-    CMAKE_EXE_LINKER_FLAGS
-    "${CMAKE_EXE_LINKER_FLAGS} -Wl,-Bstatic,--whole-archive -Wl,--no-whole-archive"
-)
-
-target_link_libraries(
-    TEST
-    k13
-)
