@@ -1,3 +1,4 @@
+// k13
 // Kyle J Burgess
 
 #ifndef K13_POD_VECTOR_H
@@ -13,6 +14,9 @@
 
 namespace k13
 {
+    // A vector class optimized for POD types
+    // Resizing does not initialize memory
+
     template<class T>
     class pod_vector
     {
