@@ -34,7 +34,7 @@ namespace k13
         }
 
         // Constructor
-        explicit pod_vector(size_t size) : m_data(nullptr), m_size(size), m_capacity(size)
+        pod_vector(size_t size) : m_data(nullptr), m_size(size), m_capacity(size)
         {
             static_assert(std::is_pod<T>::value, "pod_vector template type T must be a POD type");
             
@@ -181,6 +181,7 @@ namespace k13
             m_size = n;
         }
 
+        // Resizes the vector to n elements and initializing them to x
         void resize(size_t n, T x)
         {
             size_t temp = m_size;

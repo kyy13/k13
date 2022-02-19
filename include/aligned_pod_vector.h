@@ -5,6 +5,7 @@
 #define K13_ALIGNED_POD_VECTOR_H
 
 #include "pod_vector.h"
+#include "int_from_bytes.h"
 
 namespace k13
 {
@@ -25,12 +26,30 @@ namespace k13
             static_assert((align_size % sizeof(T)) == 0, "impossible alignment!");
         }
 
+        // Constructor
+        aligned_pod_vector(size_t size) : m_data(impl_align_convert_n(size)), m_size(size)
+        {
+            static_assert(align_size != 0, "can't align on size of 0 bytes!");
+            static_assert(sizeof(T) < align_size, "impossible alignment!");
+            static_assert((align_size % sizeof(T)) == 0, "impossible alignment!");
+        }
+
+        // Constructor
+        aligned_pod_vector(size_t size, T value) : m_data(impl_align_convert_n(size)), m_size(size)
+        {
+            static_assert(align_size != 0, "can't align on size of 0 bytes!");
+            static_assert(sizeof(T) < align_size, "impossible alignment!");
+            static_assert((align_size % sizeof(T)) == 0, "impossible alignment!");
+
+            impl_align_fill(value);
+        }
+
         // Returns const value at i
         template<class U>
         const T& operator[](U i) const
         {
             assert(static_cast<size_t>(i) < m_size);
-            return reinterpret_cast<T*>(m_data.data())[i];
+            return reinterpret_cast<const T*>(m_data.data())[i];
         }
 
         // Returns const value at i
@@ -68,6 +87,19 @@ namespace k13
         {
             m_size = n;
             m_data.resize(impl_align_convert_n(n));
+        }
+
+        // Resizes the vector to n elements and initializing them to x
+        void resize(size_t n, T x)
+        {
+            size_t temp = m_size;
+
+            resize(n);
+
+            if (n > temp)
+            {
+                impl_align_fill(temp, n - temp, x);
+            }
         }
 
         // Sets size to 0
@@ -164,6 +196,20 @@ namespace k13
             return const_reverse_iterator(reinterpret_cast<T*>(m_data.data()) - 1);
         }
 
+        // Pushes an element to the end of the data
+        void push_back(const T& o)
+        {
+            resize(m_size + 1u);
+            reinterpret_cast<T*>(m_data.data())[m_size - 1u] = o;
+        }
+
+        // Pops an element from the end of the data
+        void pop_back()
+        {
+            assert(m_size > 0u);
+            resize(m_size - 1u);
+        }
+
         // Returns reference to the first element
         T& front()
         {
@@ -194,33 +240,9 @@ namespace k13
 
     protected:
 
-        template<size_t align_size>
-        struct impl_align_type
-        {};
+        using align_type = typename uint_from_bytes<align_size>::type;
 
-        template<> struct impl_align_type<1U>
-        {
-            using type = uint8_t;
-        };
-
-        template<> struct impl_align_type<2U>
-        {
-            using type = uint16_t;
-        };
-
-        template<> struct impl_align_type<4U>
-        {
-            using type = uint32_t;
-        };
-
-        template<> struct impl_align_type<8U>
-        {
-            using type = uint64_t;
-        };
-
-        using align_type = impl_align_type<align_size>::type;
-
-        std::pod_vector<align_type> m_data;
+        k13::pod_vector<align_type> m_data;
         size_t m_size;
 
         size_t impl_align_convert_n(size_t n)
@@ -231,22 +253,61 @@ namespace k13
 
             if constexpr (m == 2)
             {
-                r = byteCount & 1;
-                byteCount >>= 1;
+                r = n & 1;
+                n >>= 1;
             }
             else if constexpr (m == 4)
             {
-                r = byteCount & 3;
-                byteCount >>= 2;
+                r = n & 3;
+                n >>= 2;
             }
             else if constexpr (m == 8)
             {
-                r = byteCount & 7;
-                byteCount >>= 3;
+                r = n & 7;
+                n >>= 3;
             }
 
-            if (r != 0) ++byteCount;
-            return byteCount;
+            if (r != 0) ++n;
+            return n;
+        }
+
+        void impl_align_fill(T x)
+        {
+            if constexpr (sizeof(T) == 1u)
+            {
+                memset(
+                    reinterpret_cast<T*>(m_data.data()),
+                    *reinterpret_cast<int*>(&x), m_size);
+            }
+            else
+            {
+                T* end = &reinterpret_cast<T*>(m_data.data())[m_size];
+                for (T* ptr = reinterpret_cast<T*>(m_data.data()); ptr != end; ++ptr)
+                {
+                    *ptr = x;
+                }
+            }
+        }
+
+        void impl_align_fill(size_t i, size_t n, T x)
+        {
+            assert(i + n <= m_size);
+
+            if constexpr (sizeof(T) == 1u)
+            {
+                memset(
+                    &reinterpret_cast<T*>(m_data.data())[i],
+                    *reinterpret_cast<int*>(&x), n);
+            }
+            else
+            {
+                T* ptr = &reinterpret_cast<T*>(m_data.data())[i];
+                T* end = ptr + n;
+                for (; ptr != end; ++ptr)
+                {
+                    *ptr = x;
+                }
+            }
         }
     };
 }
