@@ -129,6 +129,14 @@ namespace k13
             return m_size;
         }
 
+        // Returns the number of elements in the vector padded
+        // to fit the next alignment interval
+        [[nodiscard]]
+        size_t padded_size() const
+        {
+            return m_data.size() * align_size;
+        }
+
         // Returns the element capacity of the vector
         [[nodiscard]]
         size_t capacity() const
