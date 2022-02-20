@@ -3,11 +3,19 @@
 #ifndef K13_INT_FROM_BYTES_H
 #define K13_INT_FROM_BYTES_H
 
+#include <cassert>
 #include <cstdint>
 
 template<size_t NumBytes>
 struct uint_from_bytes
-{};
+{
+    static_assert(
+        NumBytes == 1 ||
+        NumBytes == 2 ||
+        NumBytes == 4 ||
+        NumBytes == 8,
+        "num bytes needs to be 1, 2 ,4, or 8");
+};
 
 template<>
 struct uint_from_bytes<1u>
@@ -35,7 +43,14 @@ struct uint_from_bytes<8u>
 
 template<size_t NumBytes>
 struct int_from_bytes
-{};
+{
+    static_assert(
+        NumBytes == 1 ||
+        NumBytes == 2 ||
+        NumBytes == 4 ||
+        NumBytes == 8,
+        "num bytes needs to be 1, 2 ,4, or 8");
+};
 
 template<>
 struct int_from_bytes<1u>
