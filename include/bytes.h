@@ -4,117 +4,103 @@
 #ifndef K13_BYTES_H
 #define K13_BYTES_H
 
-#include <cstdint>
 #include <cstring>
 
-template<class T>
-void reverse_byte_order(T* x)
+// Check for gcc bswap support
+#if (__GNUC__ > 4) || ((__GNUC__ == 4) && (__GNUC_MINOR__ >= 3))
+#define K13_GCC_BSWAP_SUPPORT
+#endif
+
+// Check for msc bswap support
+#ifdef _MSC_VER
+#define K13_MSC_BSWAP_SUPPORT
+#endif
+
+namespace k13
 {
-    if constexpr (sizeof(T) != 1)
+    template<class T>
+    T byte_swap(T x)
     {
-        uint8_t tmp;
-        auto a = reinterpret_cast<uint8_t*>(x);
+        if constexpr (sizeof(T) == 8)
+        {
+        #if   defined K13_MSC_BSWAP_SUPPORT
+            return _byteswap_uint64(x);
+        #elif defined K13_GCC_BSWAP_SUPPORT
+            return __builtin_bswap64(x);
+        #else
+            return
+                ((x << 56) & 0xff00000000000000ull) |
+                ((x << 40) & 0x00ff000000000000ull) |
+                ((x << 24) & 0x0000ff0000000000ull) |
+                ((x <<  8) & 0x000000ff00000000ull) |
+                ((x >>  8) & 0x00000000ff000000ull) |
+                ((x >> 24) & 0x0000000000ff0000ull) |
+                ((x >> 40) & 0x000000000000ff00ull) |
+                ( x >> 56);
+        #endif
+        }
+
+        if constexpr (sizeof(T) == 4)
+        {
+        #if   defined K13_MSC_BSWAP_SUPPORT
+            return _byteswap_uint32(x);
+        #elif defined K13_GCC_BSWAP_SUPPORT
+            return __builtin_bswap32(x);
+        #else
+            return
+                ((x << 24) & 0xff000000u) |
+                ((x <<  8) & 0x00ff0000u) |
+                ((x >>  8) & 0x0000ff00u) |
+                ( x >> 24);
+        #endif
+        }
 
         if constexpr (sizeof(T) == 2)
         {
-            tmp = a[0];
-            a[0] = a[1];
-            a[1] = tmp;
+        #if   defined K13_MSC_BSWAP_SUPPORT
+            return _byteswap_uint16(x);
+        #elif defined K13_GCC_BSWAP_SUPPORT
+            return __builtin_bswap16(x);
+        #else
+            return
+                ((x << 8) & 0xff00u) |
+                ( x >> 8);
+        #endif
         }
-        else if constexpr (sizeof(T) == 4)
+
+        return x;
+    }
+
+    template<class T>
+    void byte_swap(T* x, size_t n)
+    {
+        if constexpr (sizeof(T) != 1)
         {
-            tmp = a[0];
-            a[0] = a[3];
-            a[3] = tmp;
-            tmp = a[1];
-            a[1] = a[2];
-            a[2] = tmp;
-        }
-        else if constexpr (sizeof(T) == 8)
-        {
-            tmp = a[0];
-            a[0] = a[7];
-            a[7] = tmp;
-            tmp = a[1];
-            a[1] = a[6];
-            a[6] = tmp;
-            tmp = a[2];
-            a[2] = a[5];
-            a[5] = tmp;
-            tmp = a[3];
-            a[3] = a[4];
-            a[4] = tmp;
+            T* end = x + n;
+
+            for (; x != end; ++x)
+            {
+                *x = byte_swap(*x);
+            }
         }
     }
-}
 
-template<class T>
-void reverse_byte_order(T* dst, const T* src)
-{
-    if constexpr (sizeof(T) == 1)
+    template<class T>
+    void byte_swap(T* dst, const T* src, size_t n)
     {
-        *dst = *src;
-    }
-    else
-    {
-        auto a = reinterpret_cast<uint8_t*>(dst);
-        auto b = reinterpret_cast<const uint8_t*>(src);
-
-        if constexpr (sizeof(T) == 2)
+        if constexpr (sizeof(T) == 1)
         {
-            a[0] = b[1];
-            a[1] = b[0];
+            memcpy(dst, src, n);
         }
-        else if constexpr (sizeof(T) == 4)
+        else
         {
-            a[0] = b[3];
-            a[1] = b[2];
-            a[2] = b[1];
-            a[3] = b[0];
-        }
-        else if constexpr (sizeof(T) == 8)
-        {
-            a[0] = b[7];
-            a[1] = b[6];
-            a[2] = b[5];
-            a[3] = b[4];
-            a[4] = b[3];
-            a[5] = b[2];
-            a[6] = b[1];
-            a[7] = b[0];
-        }
-    }
-}
+            T* end = dst + n;
 
-template<class T>
-void reverse_byte_order(T* x, size_t n)
-{
-    if constexpr (sizeof(T) != 1)
-    {
-        T* end = x + n;
-
-        for (; x != end; ++x)
-        {
-            reverse_byte_order(x);
-        }
-    }
-}
-
-template<class T>
-void reverse_byte_order(T* dst, const T* src, size_t n)
-{
-    if constexpr (sizeof(T) == 1)
-    {
-        memcpy(dst, src, n);
-    }
-    else
-    {
-        T* end = dst + n;
-
-        for (; dst != end; ++dst)
-        {
-            reverse_byte_order(dst, src);
-            ++src;
+            for (; dst != end; ++dst)
+            {
+                *dst = byte_swap(*src);
+                ++src;
+            }
         }
     }
 }
