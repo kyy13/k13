@@ -9,7 +9,6 @@ option(BUILD_TESTS "build tests?" ON)
 # library
 add_library(
     ${PROJECT_NAME} STATIC
-    src/color.cpp
     src/thread_pool.cpp
 )
 
