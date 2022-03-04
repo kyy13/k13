@@ -5,22 +5,56 @@
 #define K13_BYTES_H
 
 #include <cstring>
+#include <cstdint>
+#include <type_traits>
 
 // Check for gcc bswap support
+#undef K13_GCC_BSWAP_SUPPORT
 #if (__GNUC__ > 4) || ((__GNUC__ == 4) && (__GNUC_MINOR__ >= 3))
 #define K13_GCC_BSWAP_SUPPORT
 #endif
 
 // Check for msc bswap support
+#undef K13_MSC_BSWAP_SUPPORT
 #ifdef _MSC_VER
 #define K13_MSC_BSWAP_SUPPORT
+#endif
+
+// Inline Expression
+#undef K13_INLINE_ATTRIBUTE
+#ifdef _MSC_VER
+#define K13_INLINE_ATTRIBUTE __forceinline
+#else
+#define K13_INLINE_ATTRIBUTE __attribute__((always_inline)) __attribute__((flatten)) inline
 #endif
 
 namespace k13
 {
     template<class T>
-    T byte_swap(T x)
+    K13_INLINE_ATTRIBUTE
+    T byteswap(T x)
     {
+        if constexpr (!std::is_unsigned<T>::value)
+        {
+            if constexpr (sizeof(T) == 2u)
+            {
+                auto r = byteswap(reinterpret_cast<uint16_t&>(x));
+                return reinterpret_cast<T&>(r);
+            }
+
+            if constexpr (sizeof(T) == 4u)
+            {
+                auto r = byteswap(reinterpret_cast<uint32_t&>(x));
+                return reinterpret_cast<T&>(r);
+            }
+
+            if constexpr (sizeof(T) == 8u)
+            {
+                auto r = byteswap(reinterpret_cast<uint64_t&>(x));
+                return reinterpret_cast<T&>(r);
+            }
+        }
+
         if constexpr (sizeof(T) == 8)
         {
         #if   defined K13_MSC_BSWAP_SUPPORT
@@ -43,7 +77,7 @@ namespace k13
         if constexpr (sizeof(T) == 4)
         {
         #if   defined K13_MSC_BSWAP_SUPPORT
-            return _byteswap_uint32(x);
+            return _byteswap_ulong(x);
         #elif defined K13_GCC_BSWAP_SUPPORT
             return __builtin_bswap32(x);
         #else
@@ -58,7 +92,7 @@ namespace k13
         if constexpr (sizeof(T) == 2)
         {
         #if   defined K13_MSC_BSWAP_SUPPORT
-            return _byteswap_uint16(x);
+            return _byteswap_ushort(x);
         #elif defined K13_GCC_BSWAP_SUPPORT
             return __builtin_bswap16(x);
         #else
@@ -72,7 +106,7 @@ namespace k13
     }
 
     template<class T>
-    void byte_swap(T* x, size_t n)
+    void byteswap(T* x, size_t n)
     {
         if constexpr (sizeof(T) != 1)
         {
@@ -80,13 +114,13 @@ namespace k13
 
             for (; x != end; ++x)
             {
-                *x = byte_swap(*x);
+                *x = byteswap(*x);
             }
         }
     }
 
     template<class T>
-    void byte_swap(T* dst, const T* src, size_t n)
+    void byteswap(T* dst, const T* src, size_t n)
     {
         if constexpr (sizeof(T) == 1)
         {
@@ -98,7 +132,7 @@ namespace k13
 
             for (; dst != end; ++dst)
             {
-                *dst = byte_swap(*src);
+                *dst = byteswap(*src);
                 ++src;
             }
         }
