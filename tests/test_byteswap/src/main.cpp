@@ -25,7 +25,6 @@ bool test_byteswap()
 
     if (!r0 || !r1)
     {
-        std::cout << k13::byteswap(a) << ", " << b << " fail_0\n";
         return false;
     }
 
@@ -38,7 +37,6 @@ bool test_byteswap()
 
     if (memcmp(aArr, bArr, 4 * sizeof(T)) != 0)
     {
-        std::cout << "fail_1\n";
         return false;
     }
 
@@ -49,7 +47,6 @@ bool test_byteswap()
 
     if (memcmp(aArr, bArr, 4 * sizeof(T)) != 0)
     {
-        std::cout << "fail_2\n";
         return false;
     }
 

@@ -9,11 +9,10 @@
 
 namespace k13
 {
-    // Persist Callback
-    enum event_callback_persistence
+    enum callback_persistence
     {
-        event_delete_callback,
-        event_persist_callback,
+        persist_callback,
+        remove_callback,
     };
 
     // Event
@@ -23,15 +22,15 @@ namespace k13
     public:
 
         // Function & Lambda binding
-        using callback_cpp = std::function<event_callback_persistence(Args...)>;
+        using func = std::function<callback_persistence(Args...)>;
 
         // Member function binding
         template<class T>
-        using callback_c = event_callback_persistence(T::*)(Args...);
+        using pfunc = callback_persistence(T::*)(Args...);
 
         // Member function binding (const)
         template<class T>
-        using callback_c_const = event_callback_persistence(T::*)(Args...) const;
+        using cpfunc = callback_persistence(T::*)(Args...) const;
 
         // Type of event
         using event_type = event<Args...>;
@@ -56,7 +55,7 @@ namespace k13
             {
                 for (auto it = m_subscribers.begin(); it != m_subscribers.end();)
                 {
-                    if (std::invoke(*it, args...) == event_persist_callback)
+                    if (std::invoke(*it, args...) == persist_callback)
                     {
                         ++it;
                     }
@@ -71,45 +70,45 @@ namespace k13
         // Forward this event's invoke to another event
         void forward(std::shared_ptr<event_type> e)
         {
-            subscribe(std::move(e), &event::forward_invoke);
+            add_callback(std::move(e), &event::forward_invoke);
         }
 
         // Forward this event's invoke once to another event
         void forward_once(std::shared_ptr<event_type> e)
         {
-            subscribe(std::move(e), &event::forward_invoke_once);
+            add_callback(std::move(e), &event::forward_invoke_once);
         }
 
-        // Subscribe to the event with a callback_cpp function
-        void subscribe(callback_cpp func)
+        // Subscribe to the event with a std::function
+        void add_callback(func func)
         {
             m_subscribers.push_back(std::move(func));
         }
 
-        // Subscribe to the event with a member callback_cpp function (const)
+        // Subscribe to the event with an object and a c-style function pointer (const)
         template<class T>
-        void subscribe(std::shared_ptr<T> object, callback_c_const<T> mem_func)
+        void add_callback(std::shared_ptr<T> object, cpfunc<T> mem_func)
         {
-            m_subscribers.push_back([object = std::weak_ptr<T>(std::move(object)), mem_func](Args... args) -> event_callback_persistence
+            m_subscribers.push_back([object = std::weak_ptr<T>(std::move(object)), mem_func](Args... args) -> callback_persistence
             {
                 if (object.expired())
                 {
-                    return event_delete_callback;
+                    return remove_callback;
                 }
 
                 return std::invoke(mem_func, object.lock().get(), args...);
             });
         }
 
-        // Subscribe to the event with a member callback_cpp function
+        // Subscribe to the event with a c-style function pointer
         template<class T>
-        void subscribe(std::shared_ptr<T> object, callback_c<T> mem_func)
+        void add_callback(std::shared_ptr<T> object, pfunc<T> mem_func)
         {
-            m_subscribers.push_back([object = std::weak_ptr<T>(std::move(object)), mem_func](Args... args) -> event_callback_persistence
+            m_subscribers.push_back([object = std::weak_ptr<T>(std::move(object)), mem_func](Args... args) -> callback_persistence
             {
                 if (object.expired())
                 {
-                    return event_delete_callback;
+                    return remove_callback;
                 }
 
                 return std::invoke(mem_func, object.lock().get(), args...);
@@ -119,20 +118,20 @@ namespace k13
     protected:
 
         // Subscribing functions
-        std::vector<callback_cpp> m_subscribers;
+        std::vector<func> m_subscribers;
 
         // Forward invoke a forwarded event
-        event_callback_persistence forward_invoke(Args... args)
+        callback_persistence forward_invoke(Args... args)
         {
             invoke(args...);
-            return event_persist_callback;
+            return persist_callback;
         }
 
         // Forward invoke a forwarded event once
-        event_callback_persistence forward_invoke_once(Args... args)
+        callback_persistence forward_invoke_once(Args... args)
         {
             invoke(args...);
-            return event_delete_callback;
+            return remove_callback;
         }
 
     };
