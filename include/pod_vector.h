@@ -82,6 +82,7 @@ namespace k13
                 return *this;
             }
 
+            delete[] m_data;
             m_data = nullptr;
             m_size = o.m_size;
             m_capacity = o.m_size;

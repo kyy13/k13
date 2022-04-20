@@ -10,6 +10,7 @@ option(BUILD_TESTS "build tests?" ON)
 add_library(
     ${PROJECT_NAME} STATIC
     src/thread_pool.cpp
+    src/scalar.cpp
 )
 
 # includes
