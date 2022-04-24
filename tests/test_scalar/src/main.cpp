@@ -10,12 +10,12 @@
 int main()
 {
     k13::scalar_t a = 5;
-    k13::scalar_t b = 10;
+    k13::scalar_t b = 1;
 
     a += 5;
     ++a;
 
-    if ((a + 10) != 21)
+    if ((a - 10) != b)
     {
         return -1;
     }

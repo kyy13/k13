@@ -9,10 +9,9 @@
 namespace k13
 {
     scalar_t::scalar_t()
-    {
-        m_type = type_int;
-        m_data.int_val = 0;
-    }
+        : m_type(type_int)
+        , m_data({})
+    {}
 
     bool scalar_t::operator==(const scalar_t& x) const
     {
@@ -107,16 +106,31 @@ namespace k13
 
     scalar_t& scalar_t::operator+=(const scalar_t& x)
     {
-        switch(m_type)
+        if (m_type == x.m_type)
         {
-            case type_real:
-                m_data.real_val += static_cast<real_t>(x);
-                break;
-            case type_int:
-                m_data.int_val += static_cast<int_t>(x);
-                break;
-            default:
-                throw std::runtime_error("scalar_t unsupported type");
+            if (m_type == type_real)
+            {
+                m_data.real_val += x.m_data.real_val;
+            }
+            else
+            {
+                m_data.int_val += x.m_data.int_val;
+            }
+        }
+        else
+        {
+            if (m_type == type_real)
+            {
+                // this: type_real, x: type_int
+                m_data.real_val += static_cast<real_t>(x.m_data.int_val);
+            }
+            else
+            {
+                // this: type_int, x: type_real
+                auto tmp = static_cast<real_t>(m_data.int_val);
+                m_type = type_real;
+                m_data.real_val = tmp + x.m_data.real_val;
+            }
         }
 
         return *this;
@@ -170,16 +184,31 @@ namespace k13
 
     scalar_t& scalar_t::operator-=(const scalar_t& x)
     {
-        switch(m_type)
+        if (m_type == x.m_type)
         {
-            case type_real:
-                m_data.real_val -= static_cast<real_t>(x);
-                break;
-            case type_int:
-                m_data.int_val -= static_cast<int_t>(x);
-                break;
-            default:
-                throw std::runtime_error("scalar_t unsupported type");
+            if (m_type == type_real)
+            {
+                m_data.real_val -= x.m_data.real_val;
+            }
+            else
+            {
+                m_data.int_val -= x.m_data.int_val;
+            }
+        }
+        else
+        {
+            if (m_type == type_real)
+            {
+                // this: type_real, x: type_int
+                m_data.real_val -= static_cast<real_t>(x.m_data.int_val);
+            }
+            else
+            {
+                // this: type_int, x: type_real
+                auto tmp = static_cast<real_t>(m_data.int_val);
+                m_type = type_real;
+                m_data.real_val = tmp - x.m_data.real_val;
+            }
         }
 
         return *this;

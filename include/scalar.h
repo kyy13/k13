@@ -11,6 +11,11 @@
 
 namespace k13
 {
+    // scalar_t
+    // Stores a number as an int64 if assigned with an integer,
+    // or a double if assigned with a floating point number.
+    // Maintains integer storage until operated on by a float
+    // or scalar_t of floating point type.
     class scalar_t
     {
     public:
@@ -39,15 +44,9 @@ namespace k13
         [[nodiscard]]
         operator T() const
         {
-            switch(m_type)
-            {
-                case type_real:
-                    return static_cast<T>(m_data.real_val);
-                case type_int:
-                    return static_cast<T>(m_data.int_val);
-                default:
-                    throw std::runtime_error("scalar_t unsupported type");
-            }
+            return (m_type == type_real)
+                ? static_cast<T>(m_data.real_val)
+                : static_cast<T>(m_data.int_val);
         }
 
         // Comparison
