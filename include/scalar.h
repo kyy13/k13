@@ -99,7 +99,7 @@ namespace k13
 
         // Convert value into a string
         [[nodiscard]]
-        std::string to_string() const;
+        std::string to_string(int precision = 17) const;
 
         // True if the underlying value is a floating point number
         [[nodiscard]]

@@ -268,14 +268,14 @@ namespace k13
         return *this;
     }
 
-    std::string scalar_t::to_string() const
+    std::string scalar_t::to_string(int precision) const
     {
         switch(m_type)
         {
             case type_real:
                 {
                     std::stringstream ss;
-                    ss  << std::setprecision(17)
+                    ss  << std::setprecision(precision)
                         << m_data.real_val;
                     return ss.str();
                 }
