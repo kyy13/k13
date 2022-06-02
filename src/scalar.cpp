@@ -295,4 +295,10 @@ namespace k13
     {
         return m_type == type_int;
     }
+
+    std::ostream& operator<<(std::ostream& os, const scalar_t& x)
+    {
+        os << x.to_string();
+        return os;
+    }
 }

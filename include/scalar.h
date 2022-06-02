@@ -9,6 +9,15 @@
 #include <type_traits>
 #include <stdexcept>
 
+#define K13_ENABLE_IF_ARITHMETIC \
+    class = typename std::enable_if<std::is_arithmetic<T>::value>::type
+
+#define K13_RETURN_SCALAR \
+    typename std::enable_if<std::is_arithmetic<T>::value, scalar_t>::type
+
+#define K13_RETURN_BOOL \
+    typename std::enable_if<std::is_arithmetic<T>::value, bool>::type
+
 namespace k13
 {
     // scalar_t
@@ -24,7 +33,7 @@ namespace k13
         scalar_t();
 
         // Construct a scalar_t with a value of x
-        template<class T>
+        template<class T, K13_ENABLE_IF_ARITHMETIC>
         scalar_t(T x)
         {
             if constexpr (std::is_floating_point<T>::value)
@@ -40,7 +49,7 @@ namespace k13
         }
 
         // Static-cast a scalar_t to type T
-        template<class T>
+        template<class T, K13_ENABLE_IF_ARITHMETIC>
         [[nodiscard]]
         operator T() const
         {
@@ -114,65 +123,65 @@ namespace k13
 
         // Comparison friends
         template<class T>
-        friend bool operator==(T lhs, const scalar_t& rhs);
+        friend K13_RETURN_BOOL operator==(T lhs, const scalar_t& rhs);
 
         template<class T>
-        friend bool operator==(const scalar_t& lhs, T rhs);
+        friend K13_RETURN_BOOL operator==(const scalar_t& lhs, T rhs);
 
         template<class T>
-        friend bool operator!=(T lhs, const scalar_t& rhs);
+        friend K13_RETURN_BOOL operator!=(T lhs, const scalar_t& rhs);
 
         template<class T>
-        friend bool operator!=(const scalar_t& lhs, T rhs);
+        friend K13_RETURN_BOOL operator!=(const scalar_t& lhs, T rhs);
 
         template<class T>
-        friend bool operator<(T lhs, const scalar_t& rhs);
+        friend K13_RETURN_BOOL operator<(T lhs, const scalar_t& rhs);
 
         template<class T>
-        friend bool operator<(const scalar_t& lhs, T rhs);
+        friend K13_RETURN_BOOL operator<(const scalar_t& lhs, T rhs);
 
         template<class T>
-        friend bool operator>(T lhs, const scalar_t& rhs);
+        friend K13_RETURN_BOOL operator>(T lhs, const scalar_t& rhs);
 
         template<class T>
-        friend bool operator>(const scalar_t& lhs, T rhs);
+        friend K13_RETURN_BOOL operator>(const scalar_t& lhs, T rhs);
 
         template<class T>
-        friend bool operator<=(T lhs, const scalar_t& rhs);
+        friend K13_RETURN_BOOL operator<=(T lhs, const scalar_t& rhs);
 
         template<class T>
-        friend bool operator<=(const scalar_t& lhs, T rhs);
+        friend K13_RETURN_BOOL operator<=(const scalar_t& lhs, T rhs);
 
         template<class T>
-        friend bool operator>=(T lhs, const scalar_t& rhs);
+        friend K13_RETURN_BOOL operator>=(T lhs, const scalar_t& rhs);
 
         template<class T>
-        friend bool operator>=(const scalar_t& lhs, T rhs);
+        friend K13_RETURN_BOOL operator>=(const scalar_t& lhs, T rhs);
 
         // Math friends
         template<class T>
-        friend scalar_t operator+(T lhs, const scalar_t& rhs);
+        friend K13_RETURN_SCALAR operator+(T lhs, const scalar_t& rhs);
 
         template<class T>
-        friend scalar_t operator+(const scalar_t& lhs, T rhs);
+        friend K13_RETURN_SCALAR operator+(const scalar_t& lhs, T rhs);
 
         template<class T>
-        friend scalar_t operator-(T lhs, const scalar_t& rhs);
+        friend K13_RETURN_SCALAR operator-(T lhs, const scalar_t& rhs);
 
         template<class T>
-        friend scalar_t operator-(const scalar_t& lhs, T rhs);
+        friend K13_RETURN_SCALAR operator-(const scalar_t& lhs, T rhs);
 
         template<class T>
-        friend scalar_t operator*(T lhs, const scalar_t& rhs);
+        friend K13_RETURN_SCALAR operator*(T lhs, const scalar_t& rhs);
 
         template<class T>
-        friend scalar_t operator*(const scalar_t& lhs, T rhs);
+        friend K13_RETURN_SCALAR operator*(const scalar_t& lhs, T rhs);
 
         template<class T>
-        friend scalar_t operator/(T lhs, const scalar_t& rhs);
+        friend K13_RETURN_SCALAR operator/(T lhs, const scalar_t& rhs);
 
         template<class T>
-        friend scalar_t operator/(const scalar_t& lhs, T rhs);
+        friend K13_RETURN_SCALAR operator/(const scalar_t& lhs, T rhs);
 
     protected:
 
@@ -193,17 +202,15 @@ namespace k13
 
     };
 
-    std::ostream& operator<<(std::ostream& os, const scalar_t& x)
-    {
-        os << x.to_string();
-        return os;
-    }
+    // STL stream integration
+
+    std::ostream& operator<<(std::ostream& os, const scalar_t& x);
 
     // Math
 
     template<class T>
     [[nodiscard]]
-    scalar_t operator+(T lhs, const scalar_t& rhs)
+    K13_RETURN_SCALAR operator+(T lhs, const scalar_t& rhs)
     {
         if (std::is_floating_point<T>::value || rhs.m_type == scalar_t::type_real)
         {
@@ -215,7 +222,7 @@ namespace k13
 
     template<class T>
     [[nodiscard]]
-    scalar_t operator+(const scalar_t& lhs, T rhs)
+    K13_RETURN_SCALAR operator+(const scalar_t& lhs, T rhs)
     {
         if (lhs.m_type == scalar_t::type_real || std::is_floating_point<T>::value)
         {
@@ -227,7 +234,7 @@ namespace k13
 
     template<class T>
     [[nodiscard]]
-    scalar_t operator-(T lhs, const scalar_t& rhs)
+    K13_RETURN_SCALAR operator-(T lhs, const scalar_t& rhs)
     {
         if (std::is_floating_point<T>::value || rhs.m_type == scalar_t::type_real)
         {
@@ -239,7 +246,7 @@ namespace k13
 
     template<class T>
     [[nodiscard]]
-    scalar_t operator-(const scalar_t& lhs, T rhs)
+    K13_RETURN_SCALAR operator-(const scalar_t& lhs, T rhs)
     {
         if (lhs.m_type == scalar_t::type_real || std::is_floating_point<T>::value)
         {
@@ -251,7 +258,7 @@ namespace k13
 
     template<class T>
     [[nodiscard]]
-    scalar_t operator*(T lhs, const scalar_t& rhs)
+    K13_RETURN_SCALAR operator*(T lhs, const scalar_t& rhs)
     {
         if (std::is_floating_point<T>::value || rhs.m_type == scalar_t::type_real)
         {
@@ -263,7 +270,7 @@ namespace k13
 
     template<class T>
     [[nodiscard]]
-    scalar_t operator*(const scalar_t& lhs, T rhs)
+    K13_RETURN_SCALAR operator*(const scalar_t& lhs, T rhs)
     {
         if (lhs.m_type == scalar_t::type_real || std::is_floating_point<T>::value)
         {
@@ -275,7 +282,7 @@ namespace k13
 
     template<class T>
     [[nodiscard]]
-    scalar_t operator/(T lhs, const scalar_t& rhs)
+    K13_RETURN_SCALAR operator/(T lhs, const scalar_t& rhs)
     {
         if (std::is_floating_point<T>::value || rhs.m_type == scalar_t::type_real)
         {
@@ -287,7 +294,7 @@ namespace k13
 
     template<class T>
     [[nodiscard]]
-    scalar_t operator/(const scalar_t& lhs, T rhs)
+    K13_RETURN_SCALAR operator/(const scalar_t& lhs, T rhs)
     {
         if (lhs.m_type == scalar_t::type_real || std::is_floating_point<T>::value)
         {
@@ -299,7 +306,7 @@ namespace k13
 
     template<class T>
     [[nodiscard]]
-    bool operator==(T lhs, const scalar_t& rhs)
+    K13_RETURN_BOOL operator==(T lhs, const scalar_t& rhs)
     {
         if (std::is_floating_point<T>::value || rhs.m_type == scalar_t::type_real)
         {
@@ -311,7 +318,7 @@ namespace k13
 
     template<class T>
     [[nodiscard]]
-    bool operator==(const scalar_t& lhs, T rhs)
+    K13_RETURN_BOOL operator==(const scalar_t& lhs, T rhs)
     {
         if (lhs.m_type == scalar_t::type_real || std::is_floating_point<T>::value)
         {
@@ -323,21 +330,21 @@ namespace k13
 
     template<class T>
     [[nodiscard]]
-    bool operator!=(T lhs, const scalar_t& rhs)
+    K13_RETURN_BOOL operator!=(T lhs, const scalar_t& rhs)
     {
         return !operator==(lhs, rhs);
     }
 
     template<class T>
     [[nodiscard]]
-    bool operator!=(const scalar_t& lhs, T rhs)
+    K13_RETURN_BOOL operator!=(const scalar_t& lhs, T rhs)
     {
         return !operator==(lhs, rhs);
     }
 
     template<class T>
     [[nodiscard]]
-    bool operator<(T lhs, const scalar_t& rhs)
+    K13_RETURN_BOOL operator<(T lhs, const scalar_t& rhs)
     {
         if (std::is_floating_point<T>::value || rhs.m_type == scalar_t::type_real)
         {
@@ -349,7 +356,7 @@ namespace k13
 
     template<class T>
     [[nodiscard]]
-    bool operator<(const scalar_t& lhs, T rhs)
+    K13_RETURN_BOOL operator<(const scalar_t& lhs, T rhs)
     {
         if (lhs.m_type == scalar_t::type_real || std::is_floating_point<T>::value)
         {
@@ -361,7 +368,7 @@ namespace k13
 
     template<class T>
     [[nodiscard]]
-    bool operator>(T lhs, const scalar_t& rhs)
+    K13_RETURN_BOOL operator>(T lhs, const scalar_t& rhs)
     {
         if (std::is_floating_point<T>::value || rhs.m_type == scalar_t::type_real)
         {
@@ -373,7 +380,7 @@ namespace k13
 
     template<class T>
     [[nodiscard]]
-    bool operator>(const scalar_t& lhs, T rhs)
+    K13_RETURN_BOOL operator>(const scalar_t& lhs, T rhs)
     {
         if (lhs.m_type == scalar_t::type_real || std::is_floating_point<T>::value)
         {
@@ -385,28 +392,28 @@ namespace k13
 
     template<class T>
     [[nodiscard]]
-    bool operator<=(T lhs, const scalar_t& rhs)
+    K13_RETURN_BOOL operator<=(T lhs, const scalar_t& rhs)
     {
         return !operator>(lhs, rhs);
     }
 
     template<class T>
     [[nodiscard]]
-    bool operator<=(const scalar_t& lhs, T rhs)
+    K13_RETURN_BOOL operator<=(const scalar_t& lhs, T rhs)
     {
         return !operator>(lhs, rhs);
     }
 
     template<class T>
     [[nodiscard]]
-    bool operator>=(T lhs, const scalar_t& rhs)
+    K13_RETURN_BOOL operator>=(T lhs, const scalar_t& rhs)
     {
         return !operator<(lhs, rhs);
     }
 
     template<class T>
     [[nodiscard]]
-    bool operator>=(const scalar_t& lhs, T rhs)
+    K13_RETURN_BOOL operator>=(const scalar_t& lhs, T rhs)
     {
         return !operator<(lhs, rhs);
     }
