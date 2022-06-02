@@ -9,14 +9,13 @@
 #include <type_traits>
 #include <stdexcept>
 
-#define K13_ENABLE_IF_ARITHMETIC \
-    class = typename std::enable_if<std::is_arithmetic<T>::value>::type
+// Prevents template substitution of non-arithmetic types (templateType) via return type (SFINAE)
+#define K13_ARITHMETIC_ENABLE(templateType, returnType) \
+    typename std::enable_if<std::is_arithmetic<templateType>::value, returnType>::type
 
-#define K13_RETURN_SCALAR \
-    typename std::enable_if<std::is_arithmetic<T>::value, scalar_t>::type
-
-#define K13_RETURN_BOOL \
-    typename std::enable_if<std::is_arithmetic<T>::value, bool>::type
+// Prevents template substitution of non-arithmetic types (templateType) via template parameter (SFINAE)
+#define K13_ARITHMETIC_ENABLE_T(templateType) \
+    class = typename std::enable_if<std::is_arithmetic<templateType>::value>::type
 
 namespace k13
 {
@@ -33,7 +32,7 @@ namespace k13
         scalar_t();
 
         // Construct a scalar_t with a value of x
-        template<class T, K13_ENABLE_IF_ARITHMETIC>
+        template<class T, K13_ARITHMETIC_ENABLE_T(T)>
         scalar_t(T x)
         {
             if constexpr (std::is_floating_point<T>::value)
@@ -49,7 +48,7 @@ namespace k13
         }
 
         // Static-cast a scalar_t to type T
-        template<class T, K13_ENABLE_IF_ARITHMETIC>
+        template<class T, K13_ARITHMETIC_ENABLE_T(T)>
         [[nodiscard]]
         operator T() const
         {
@@ -123,65 +122,65 @@ namespace k13
 
         // Comparison friends
         template<class T>
-        friend K13_RETURN_BOOL operator==(T lhs, const scalar_t& rhs);
+        friend K13_ARITHMETIC_ENABLE(T, bool) operator==(T lhs, const scalar_t& rhs);
 
         template<class T>
-        friend K13_RETURN_BOOL operator==(const scalar_t& lhs, T rhs);
+        friend K13_ARITHMETIC_ENABLE(T, bool) operator==(const scalar_t& lhs, T rhs);
 
         template<class T>
-        friend K13_RETURN_BOOL operator!=(T lhs, const scalar_t& rhs);
+        friend K13_ARITHMETIC_ENABLE(T, bool) operator!=(T lhs, const scalar_t& rhs);
 
         template<class T>
-        friend K13_RETURN_BOOL operator!=(const scalar_t& lhs, T rhs);
+        friend K13_ARITHMETIC_ENABLE(T, bool) operator!=(const scalar_t& lhs, T rhs);
 
         template<class T>
-        friend K13_RETURN_BOOL operator<(T lhs, const scalar_t& rhs);
+        friend K13_ARITHMETIC_ENABLE(T, bool) operator<(T lhs, const scalar_t& rhs);
 
         template<class T>
-        friend K13_RETURN_BOOL operator<(const scalar_t& lhs, T rhs);
+        friend K13_ARITHMETIC_ENABLE(T, bool) operator<(const scalar_t& lhs, T rhs);
 
         template<class T>
-        friend K13_RETURN_BOOL operator>(T lhs, const scalar_t& rhs);
+        friend K13_ARITHMETIC_ENABLE(T, bool) operator>(T lhs, const scalar_t& rhs);
 
         template<class T>
-        friend K13_RETURN_BOOL operator>(const scalar_t& lhs, T rhs);
+        friend K13_ARITHMETIC_ENABLE(T, bool) operator>(const scalar_t& lhs, T rhs);
 
         template<class T>
-        friend K13_RETURN_BOOL operator<=(T lhs, const scalar_t& rhs);
+        friend K13_ARITHMETIC_ENABLE(T, bool) operator<=(T lhs, const scalar_t& rhs);
 
         template<class T>
-        friend K13_RETURN_BOOL operator<=(const scalar_t& lhs, T rhs);
+        friend K13_ARITHMETIC_ENABLE(T, bool) operator<=(const scalar_t& lhs, T rhs);
 
         template<class T>
-        friend K13_RETURN_BOOL operator>=(T lhs, const scalar_t& rhs);
+        friend K13_ARITHMETIC_ENABLE(T, bool) operator>=(T lhs, const scalar_t& rhs);
 
         template<class T>
-        friend K13_RETURN_BOOL operator>=(const scalar_t& lhs, T rhs);
+        friend K13_ARITHMETIC_ENABLE(T, bool) operator>=(const scalar_t& lhs, T rhs);
 
         // Math friends
         template<class T>
-        friend K13_RETURN_SCALAR operator+(T lhs, const scalar_t& rhs);
+        friend K13_ARITHMETIC_ENABLE(T, scalar_t) operator+(T lhs, const scalar_t& rhs);
 
         template<class T>
-        friend K13_RETURN_SCALAR operator+(const scalar_t& lhs, T rhs);
+        friend K13_ARITHMETIC_ENABLE(T, scalar_t) operator+(const scalar_t& lhs, T rhs);
 
         template<class T>
-        friend K13_RETURN_SCALAR operator-(T lhs, const scalar_t& rhs);
+        friend K13_ARITHMETIC_ENABLE(T, scalar_t) operator-(T lhs, const scalar_t& rhs);
 
         template<class T>
-        friend K13_RETURN_SCALAR operator-(const scalar_t& lhs, T rhs);
+        friend K13_ARITHMETIC_ENABLE(T, scalar_t) operator-(const scalar_t& lhs, T rhs);
 
         template<class T>
-        friend K13_RETURN_SCALAR operator*(T lhs, const scalar_t& rhs);
+        friend K13_ARITHMETIC_ENABLE(T, scalar_t) operator*(T lhs, const scalar_t& rhs);
 
         template<class T>
-        friend K13_RETURN_SCALAR operator*(const scalar_t& lhs, T rhs);
+        friend K13_ARITHMETIC_ENABLE(T, scalar_t) operator*(const scalar_t& lhs, T rhs);
 
         template<class T>
-        friend K13_RETURN_SCALAR operator/(T lhs, const scalar_t& rhs);
+        friend K13_ARITHMETIC_ENABLE(T, scalar_t) operator/(T lhs, const scalar_t& rhs);
 
         template<class T>
-        friend K13_RETURN_SCALAR operator/(const scalar_t& lhs, T rhs);
+        friend K13_ARITHMETIC_ENABLE(T, scalar_t) operator/(const scalar_t& lhs, T rhs);
 
     protected:
 
@@ -210,7 +209,7 @@ namespace k13
 
     template<class T>
     [[nodiscard]]
-    K13_RETURN_SCALAR operator+(T lhs, const scalar_t& rhs)
+    K13_ARITHMETIC_ENABLE(T, scalar_t) operator+(T lhs, const scalar_t& rhs)
     {
         if (std::is_floating_point<T>::value || rhs.m_type == scalar_t::type_real)
         {
@@ -222,7 +221,7 @@ namespace k13
 
     template<class T>
     [[nodiscard]]
-    K13_RETURN_SCALAR operator+(const scalar_t& lhs, T rhs)
+    K13_ARITHMETIC_ENABLE(T, scalar_t) operator+(const scalar_t& lhs, T rhs)
     {
         if (lhs.m_type == scalar_t::type_real || std::is_floating_point<T>::value)
         {
@@ -234,7 +233,7 @@ namespace k13
 
     template<class T>
     [[nodiscard]]
-    K13_RETURN_SCALAR operator-(T lhs, const scalar_t& rhs)
+    K13_ARITHMETIC_ENABLE(T, scalar_t) operator-(T lhs, const scalar_t& rhs)
     {
         if (std::is_floating_point<T>::value || rhs.m_type == scalar_t::type_real)
         {
@@ -246,7 +245,7 @@ namespace k13
 
     template<class T>
     [[nodiscard]]
-    K13_RETURN_SCALAR operator-(const scalar_t& lhs, T rhs)
+    K13_ARITHMETIC_ENABLE(T, scalar_t) operator-(const scalar_t& lhs, T rhs)
     {
         if (lhs.m_type == scalar_t::type_real || std::is_floating_point<T>::value)
         {
@@ -258,7 +257,7 @@ namespace k13
 
     template<class T>
     [[nodiscard]]
-    K13_RETURN_SCALAR operator*(T lhs, const scalar_t& rhs)
+    K13_ARITHMETIC_ENABLE(T, scalar_t) operator*(T lhs, const scalar_t& rhs)
     {
         if (std::is_floating_point<T>::value || rhs.m_type == scalar_t::type_real)
         {
@@ -270,7 +269,7 @@ namespace k13
 
     template<class T>
     [[nodiscard]]
-    K13_RETURN_SCALAR operator*(const scalar_t& lhs, T rhs)
+    K13_ARITHMETIC_ENABLE(T, scalar_t) operator*(const scalar_t& lhs, T rhs)
     {
         if (lhs.m_type == scalar_t::type_real || std::is_floating_point<T>::value)
         {
@@ -282,7 +281,7 @@ namespace k13
 
     template<class T>
     [[nodiscard]]
-    K13_RETURN_SCALAR operator/(T lhs, const scalar_t& rhs)
+    K13_ARITHMETIC_ENABLE(T, scalar_t) operator/(T lhs, const scalar_t& rhs)
     {
         if (std::is_floating_point<T>::value || rhs.m_type == scalar_t::type_real)
         {
@@ -294,7 +293,7 @@ namespace k13
 
     template<class T>
     [[nodiscard]]
-    K13_RETURN_SCALAR operator/(const scalar_t& lhs, T rhs)
+    K13_ARITHMETIC_ENABLE(T, scalar_t) operator/(const scalar_t& lhs, T rhs)
     {
         if (lhs.m_type == scalar_t::type_real || std::is_floating_point<T>::value)
         {
@@ -306,7 +305,7 @@ namespace k13
 
     template<class T>
     [[nodiscard]]
-    K13_RETURN_BOOL operator==(T lhs, const scalar_t& rhs)
+    K13_ARITHMETIC_ENABLE(T, bool) operator==(T lhs, const scalar_t& rhs)
     {
         if (std::is_floating_point<T>::value || rhs.m_type == scalar_t::type_real)
         {
@@ -318,7 +317,7 @@ namespace k13
 
     template<class T>
     [[nodiscard]]
-    K13_RETURN_BOOL operator==(const scalar_t& lhs, T rhs)
+    K13_ARITHMETIC_ENABLE(T, bool) operator==(const scalar_t& lhs, T rhs)
     {
         if (lhs.m_type == scalar_t::type_real || std::is_floating_point<T>::value)
         {
@@ -330,21 +329,21 @@ namespace k13
 
     template<class T>
     [[nodiscard]]
-    K13_RETURN_BOOL operator!=(T lhs, const scalar_t& rhs)
+    K13_ARITHMETIC_ENABLE(T, bool) operator!=(T lhs, const scalar_t& rhs)
     {
         return !operator==(lhs, rhs);
     }
 
     template<class T>
     [[nodiscard]]
-    K13_RETURN_BOOL operator!=(const scalar_t& lhs, T rhs)
+    K13_ARITHMETIC_ENABLE(T, bool) operator!=(const scalar_t& lhs, T rhs)
     {
         return !operator==(lhs, rhs);
     }
 
     template<class T>
     [[nodiscard]]
-    K13_RETURN_BOOL operator<(T lhs, const scalar_t& rhs)
+    K13_ARITHMETIC_ENABLE(T, bool) operator<(T lhs, const scalar_t& rhs)
     {
         if (std::is_floating_point<T>::value || rhs.m_type == scalar_t::type_real)
         {
@@ -356,7 +355,7 @@ namespace k13
 
     template<class T>
     [[nodiscard]]
-    K13_RETURN_BOOL operator<(const scalar_t& lhs, T rhs)
+    K13_ARITHMETIC_ENABLE(T, bool) operator<(const scalar_t& lhs, T rhs)
     {
         if (lhs.m_type == scalar_t::type_real || std::is_floating_point<T>::value)
         {
@@ -368,7 +367,7 @@ namespace k13
 
     template<class T>
     [[nodiscard]]
-    K13_RETURN_BOOL operator>(T lhs, const scalar_t& rhs)
+    K13_ARITHMETIC_ENABLE(T, bool) operator>(T lhs, const scalar_t& rhs)
     {
         if (std::is_floating_point<T>::value || rhs.m_type == scalar_t::type_real)
         {
@@ -380,7 +379,7 @@ namespace k13
 
     template<class T>
     [[nodiscard]]
-    K13_RETURN_BOOL operator>(const scalar_t& lhs, T rhs)
+    K13_ARITHMETIC_ENABLE(T, bool) operator>(const scalar_t& lhs, T rhs)
     {
         if (lhs.m_type == scalar_t::type_real || std::is_floating_point<T>::value)
         {
@@ -392,28 +391,28 @@ namespace k13
 
     template<class T>
     [[nodiscard]]
-    K13_RETURN_BOOL operator<=(T lhs, const scalar_t& rhs)
+    K13_ARITHMETIC_ENABLE(T, bool) operator<=(T lhs, const scalar_t& rhs)
     {
         return !operator>(lhs, rhs);
     }
 
     template<class T>
     [[nodiscard]]
-    K13_RETURN_BOOL operator<=(const scalar_t& lhs, T rhs)
+    K13_ARITHMETIC_ENABLE(T, bool) operator<=(const scalar_t& lhs, T rhs)
     {
         return !operator>(lhs, rhs);
     }
 
     template<class T>
     [[nodiscard]]
-    K13_RETURN_BOOL operator>=(T lhs, const scalar_t& rhs)
+    K13_ARITHMETIC_ENABLE(T, bool) operator>=(T lhs, const scalar_t& rhs)
     {
         return !operator<(lhs, rhs);
     }
 
     template<class T>
     [[nodiscard]]
-    K13_RETURN_BOOL operator>=(const scalar_t& lhs, T rhs)
+    K13_ARITHMETIC_ENABLE(T, bool) operator>=(const scalar_t& lhs, T rhs)
     {
         return !operator<(lhs, rhs);
     }
