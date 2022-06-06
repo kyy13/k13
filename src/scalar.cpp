@@ -298,7 +298,17 @@ namespace k13
 
     std::ostream& operator<<(std::ostream& os, const scalar_t& x)
     {
-        os << x.to_string();
+        switch(x.m_type)
+        {
+            case scalar_t::type_real:
+                os << x.m_data.real_val;
+                break;
+            case scalar_t::type_int:
+                os << x.m_data.int_val;
+                break;
+            default:
+                throw std::runtime_error("scalar_t unsupported type");
+        }
         return os;
     }
 }
