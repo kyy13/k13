@@ -1,5 +1,2 @@
 # k13
-c++ common utility
-
-WIP
-personal library for common c++ utility functions
+Miscellaneous collection of c++ utility methods / classes that I've pulled out of my old projects.
